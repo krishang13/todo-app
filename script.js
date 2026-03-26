@@ -1,23 +1,74 @@
+const taskInput = document.getElementById("taskInput");
+const addBtn = document.getElementById("addBtn");
+const taskList = document.getElementById("taskList");
+
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+function saveTasks() {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+function renderTasks() {
+  taskList.innerHTML = "";
+
+  tasks.forEach((task, index) => {
+    const li = document.createElement("li");
+    li.className = "task-item";
+
+    const span = document.createElement("span");
+    span.className = "task-text";
+    span.textContent = task.text;
+
+    if (task.completed) {
+      span.classList.add("completed");
+    }
+
+    span.addEventListener("click", () => {
+      tasks[index].completed = !tasks[index].completed;
+      saveTasks();
+      renderTasks();
+    });
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "delete-btn";
+    deleteBtn.textContent = "Delete";
+
+    deleteBtn.addEventListener("click", () => {
+      tasks.splice(index, 1);
+      saveTasks();
+      renderTasks();
+    });
+
+    li.appendChild(span);
+    li.appendChild(deleteBtn);
+    taskList.appendChild(li);
+  });
+}
+
 function addTask() {
-  const input = document.getElementById("taskInput");
-  const taskText = input.value.trim();
+  const taskText = taskInput.value.trim();
 
-  if (taskText === "") return;
+  if (taskText === "") {
+    alert("Please enter a task.");
+    return;
+  }
 
-  const li = document.createElement("li");
-  li.innerHTML = `
-    <span onclick="toggleTask(this)">${taskText}</span>
-    <button onclick="deleteTask(this)">❌</button>
-  `;
+  tasks.push({
+    text: taskText,
+    completed: false
+  });
 
-  document.getElementById("taskList").appendChild(li);
-  input.value = "";
+  saveTasks();
+  renderTasks();
+  taskInput.value = "";
 }
 
-function deleteTask(button) {
-  button.parentElement.remove();
-}
+addBtn.addEventListener("click", addTask);
 
-function toggleTask(span) {
-  span.classList.toggle("completed");
-}
+taskInput.addEventListener("keypress", function (event) {
+  if (event.key === "Enter") {
+    addTask();
+  }
+});
+
+renderTasks();
